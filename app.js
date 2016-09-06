@@ -105,6 +105,9 @@ if(process.env.LOCALE) configApp.app.locale = process.env.LOCALE;
 if(process.env.CONTEXT) configApp.app.context = process.env.CONTEXT;
 if(process.env.MONITORING) configApp.app.monitoring = process.env.MONITORING;
 
+
+
+
 if(!fs.existsSync(config_app)) fs.writeFileSync(config_app, JSON.stringify(configApp));
 
 // Check the env for a connection to initiate
@@ -118,6 +121,30 @@ if(process.env.CONN_NAME && process.env.DB_USERNAME && process.env.DB_PASSWORD &
         connection_string: 'mongodb://' + process.env.DB_USERNAME + ':' + process.env.DB_PASSWORD + '@' + process.env.DB_HOST + ':' + process.env.DB_PORT
     };
 }
+
+// openshift support
+if (connection_string == null && process.env.DATABASE_SERVICE_NAME) {
+  var mongoServiceName = process.env.DATABASE_SERVICE_NAME.toUpperCase(),
+      mongoHost = process.env[mongoServiceName + '_SERVICE_HOST'],
+      mongoPort = process.env[mongoServiceName + '_SERVICE_PORT'],
+      mongoDatabase = process.env[mongoServiceName + '_DATABASE'],
+      mongoPassword = process.env[mongoServiceName + '_PASSWORD']
+      mongoUser = process.env[mongoServiceName + '_USER'];
+
+  if (mongoHost && mongoPort && mongoDatabase) {
+    mongoURLLabel = mongoURL = 'mongodb://';
+    if (mongoUser && mongoPassword) {
+      mongoURL += mongoUser + ':' + mongoPassword + '@';
+    }
+    // Provide UI label that excludes user id and pw
+    mongoURLLabel += mongoHost + ':' + mongoPort + '/' + mongoDatabase;
+    connection_string += mongoHost + ':' +  mongoPort + '/' + mongoDatabase;
+
+  }
+}
+
+
+
 
 if(!fs.existsSync(config_connections)) fs.writeFileSync(config_connections, JSON.stringify(configConnection));
 
