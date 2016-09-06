@@ -2,13 +2,123 @@
   "kind": "Template",
   "apiVersion": "v1",
   "metadata": {
-    "name": "AdminMongo App",
+    "name": "admin-mongo",
     "annotations": {
       "description": "A Node.js application to manage MongoDb",
       "tags": "adminMongo,nodejs, mongodb",
       "iconClass": "icon-nodejs"
     }
   },
+  "parameters": [
+    {
+      "name": "NAME",
+      "displayName": "Name",
+      "description": "The name assigned to all of the frontend objects defined in this template.",
+      "required": true,
+      "value": "admin-mongo"
+    },
+    {
+      "name": "NAMESPACE",
+      "displayName": "Namespace",
+      "description": "The OpenShift Namespace where the ImageStream resides.",
+      "required": true,
+      "value": "openshift"
+    },
+    {
+      "name": "MEMORY_LIMIT",
+      "displayName": "Memory Limit",
+      "description": "Maximum amount of memory the container can use.",
+      "required": true,
+      "value": "512Mi"
+    },
+    {
+      "name": "SOURCE_REPOSITORY_URL",
+      "displayName": "Git Repository URL",
+      "description": "The URL of the repository with your application source code.",
+      "required": true,
+      "value": "https://github.com/luigidemasi/adminMongo.git"
+    },
+    {
+      "name": "SOURCE_REPOSITORY_REF",
+      "displayName": "Git Reference",
+      "description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+    },
+    {
+      "name": "CONTEXT_DIR",
+      "displayName": "Context Directory",
+      "description": "Set this to the relative path to your project if it is not in the root of your repository."
+    },
+    {
+      "name": "APPLICATION_DOMAIN",
+      "displayName": "Application Hostname",
+      "description": "The exposed hostname that will route to the Node.js service, if left blank a value will be defaulted.",
+      "value": ""
+    },
+    {
+      "name": "GITHUB_WEBHOOK_SECRET",
+      "displayName": "GitHub Webhook Secret",
+      "description": "A secret string used to configure the GitHub webhook.",
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{40}"
+    },
+    {
+      "name": "GENERIC_WEBHOOK_SECRET",
+      "displayName": "Generic Webhook Secret",
+      "description": "A secret string used to configure the Generic webhook.",
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{40}"
+    },
+    {
+      "name": "DATABASE_SERVICE_NAME",
+      "displayName": "Database Service Name"
+    },
+    {
+      "name": "MONGODB_USER",
+      "displayName": "MongoDB Username",
+      "description": "Username for MongoDB user that will be used for accessing the database."
+    },
+    {
+      "name": "MONGODB_PASSWORD",
+      "displayName": "MongoDB Password",
+      "description": "Password for the MongoDB user."
+    },
+    {
+      "name": "MONGODB_DATABASE",
+      "displayName": "Database Name"
+    },
+    {
+      "name": "MONGODB_ADMIN_PASSWORD",
+      "displayName": "Database Administrator Password",
+      "description": "Password for the database admin user."
+    },
+    {
+      "name": "NPM_MIRROR",
+      "displayName": "Custom NPM Mirror URL",
+      "description": "The custom NPM mirror URL",
+      "value": ""
+    },
+    {
+      "name": "MONGOADMIN_PASSWORD",
+      "displayName": "MongoAndmin password",
+      "required": true,
+      "description": "password to access the mongoAdmin app",
+      "value": ""
+    },
+    {
+      "name": "MONGOADMIN_CONTEXT_PATH",
+      "displayName": "MongoAndmin context path",
+      "required": true,
+      "description": "MongoAndmin context path",
+      "value": "/"
+    },
+    {
+      "name": "MONGOADMIN_PORT",
+      "displayName": "MongoAndmin port",
+      "required": true,
+      "description": "MongoAndmin port",
+      "value": "8080"
+    }
+  ],
   "labels": {
     "template": "adminMongo"
   },
@@ -26,8 +136,8 @@
         "ports": [
           {
             "name": "web",
-            "port": "${MONGOADMIN_PORT}",
-            "targetPort": "${MONGOADMIN_PORT}"
+            "port": "8080",
+            "targetPort": "8080"
           }
         ],
         "selector": {
@@ -173,7 +283,7 @@
                 "image": " ",
                 "ports": [
                   {
-                    "containerPort": "${MONGOADMIN_PORT}"
+                    "containerPort": "8080"
                   }
                 ],
                 "readinessProbe": {
@@ -181,7 +291,7 @@
                   "initialDelaySeconds": 3,
                   "httpGet": {
                     "path": "/",
-                    "port": "${MONGOADMIN_PORT}"
+                    "port": "8080"
                   }
                 },
                 "livenessProbe": {
@@ -189,7 +299,7 @@
                   "initialDelaySeconds": 30,
                   "httpGet": {
                     "path": "/",
-                    "port": "${MONGOADMIN_PORT}"
+                    "port": "8080"
                   }
                 },
                 "resources": {
@@ -224,7 +334,7 @@
                   },
                   {
                     "name": "PORT",
-                    "value": "${MONGOADMIN_PORT}"
+                    "value": "8080"
                   },
                   {
                     "name": "HOST",
@@ -245,116 +355,6 @@
           }
         }
       }
-    }
-  ],
-  "parameters": [
-    {
-      "name": "NAME",
-      "displayName": "Name",
-      "description": "The name assigned to all of the frontend objects defined in this template.",
-      "required": true,
-      "value": "nodejs-example"
-    },
-    {
-      "name": "NAMESPACE",
-      "displayName": "Namespace",
-      "description": "The OpenShift Namespace where the ImageStream resides.",
-      "required": true,
-      "value": "openshift"
-    },
-    {
-      "name": "MEMORY_LIMIT",
-      "displayName": "Memory Limit",
-      "description": "Maximum amount of memory the container can use.",
-      "required": true,
-      "value": "512Mi"
-    },
-    {
-      "name": "SOURCE_REPOSITORY_URL",
-      "displayName": "Git Repository URL",
-      "description": "The URL of the repository with your application source code.",
-      "required": true,
-      "value": "https://github.com/openshift/nodejs-ex.git"
-    },
-    {
-      "name": "SOURCE_REPOSITORY_REF",
-      "displayName": "Git Reference",
-      "description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
-    },
-    {
-      "name": "CONTEXT_DIR",
-      "displayName": "Context Directory",
-      "description": "Set this to the relative path to your project if it is not in the root of your repository."
-    },
-    {
-      "name": "APPLICATION_DOMAIN",
-      "displayName": "Application Hostname",
-      "description": "The exposed hostname that will route to the Node.js service, if left blank a value will be defaulted.",
-      "value": ""
-    },
-    {
-      "name": "GITHUB_WEBHOOK_SECRET",
-      "displayName": "GitHub Webhook Secret",
-      "description": "A secret string used to configure the GitHub webhook.",
-      "generate": "expression",
-      "from": "[a-zA-Z0-9]{40}"
-    },
-    {
-      "name": "GENERIC_WEBHOOK_SECRET",
-      "displayName": "Generic Webhook Secret",
-      "description": "A secret string used to configure the Generic webhook.",
-      "generate": "expression",
-      "from": "[a-zA-Z0-9]{40}"
-    },
-    {
-      "name": "DATABASE_SERVICE_NAME",
-      "displayName": "Database Service Name"
-    },
-    {
-      "name": "MONGODB_USER",
-      "displayName": "MongoDB Username",
-      "description": "Username for MongoDB user that will be used for accessing the database."
-    },
-    {
-      "name": "MONGODB_PASSWORD",
-      "displayName": "MongoDB Password",
-      "description": "Password for the MongoDB user."
-    },
-    {
-      "name": "MONGODB_DATABASE",
-      "displayName": "Database Name"
-    },
-    {
-      "name": "MONGODB_ADMIN_PASSWORD",
-      "displayName": "Database Administrator Password",
-      "description": "Password for the database admin user."
-    },
-    {
-      "name": "NPM_MIRROR",
-      "displayName": "Custom NPM Mirror URL",
-      "description": "The custom NPM mirror URL",
-      "value": ""
-    },
-    {
-      "name": "MONGOADMIN_PASSWORD",
-      "displayName": "MongoAndmin password",
-      "required": true,
-      "description": "password to access the mongoAdmin app",
-      "value": ""
-    },
-    {
-      "name": "MONGOADMIN_CONTEXT_PATH",
-      "displayName": "MongoAndmin context path",
-      "required": true,
-      "description": "MongoAndmin context path",
-      "value": "/"
-    },
-    {
-      "name": "MONGOADMIN_PORT",
-      "displayName": "MongoAndmin port",
-      "required": true,
-      "description": "MongoAndmin port",
-      "value": "8080"
     }
   ]
 }

@@ -114,6 +114,8 @@ if(!fs.existsSync(config_app)) fs.writeFileSync(config_app, JSON.stringify(confi
 var configConnection = {
     connections: {}
 };
+
+var connection_string = process.env.MONGO_CONNECTION_STRING;
 if(process.env.CONN_NAME && process.env.DB_USERNAME && process.env.DB_PASSWORD && process.env.DB_HOST){
     if(!process.env.DB_PORT) process.env.DB_PORT = '27017'; // Use the default mongodb port when DB_PORT is not set
     configConnection.connections[process.env.CONN_NAME] = {
