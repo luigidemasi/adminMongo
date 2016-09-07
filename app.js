@@ -149,7 +149,7 @@ if (connection_string == null && process.env.DATABASE_SERVICE_NAME) {
   }
 }
 
-console.log("Connection String='"+);
+console.log('Connection String='+JSON.stringify(configConnection));
 
 
 if(!fs.existsSync(config_connections)) fs.writeFileSync(config_connections, JSON.stringify(configConnection));
