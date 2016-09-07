@@ -1,0 +1,378 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "adminMongo",
+        "namespace": "openshift",
+        "annotations": {
+            "description": "adminMongo Node.js application with a MongoDB database",
+            "iconClass": "icon-nodejs",
+            "tags": "admin-mongo,nodejs,mongodb"
+        }
+    },
+    "objects": [
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "adminMongo",
+                "annotations": {
+                    "description": "Exposes and load balances the application pods"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "web",
+                        "port": 8080,
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "name": "adminMongo"
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "adminMongo"
+            },
+            "spec": {
+                "to": {
+                    "kind": "Service",
+                    "name": "adminMongo"
+                }
+            }
+        },
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "adminMongo",
+                "annotations": {
+                    "description": "Keeps track of changes in the application image"
+                }
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "adminMongo",
+                "annotations": {
+                    "description": "Defines how to build the application"
+                }
+            },
+            "spec": {
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "${SOURCE_REPOSITORY_URL}"
+                    },
+                    "contextDir": "${CONTEXT_DIR}"
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "namespace": "openshift",
+                            "name": "nodejs:0.10"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "adminMongo:latest"
+                    }
+                }
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "adminMongo",
+                "annotations": {
+                    "description": "Defines how to deploy the application server"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Rolling"
+                },
+                "triggers": [
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "adminMongo"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "adminMongo:latest"
+                            }
+                        }
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "name": "adminMongo"
+                },
+                "template": {
+                    "metadata": {
+                        "name": "adminMongo",
+                        "labels": {
+                            "name": "adminMongo"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "adminMongo",
+                                "image": "adminMongo",
+                                "ports": [
+                                    {
+                                        "containerPort": 8080
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "DATABASE_SERVICE_NAME",
+                                        "value": "${DATABASE_SERVICE_NAME}"
+                                    },
+                                    {
+                                        "name": "MONGODB_USER",
+                                        "value": "${DATABASE_USER}"
+                                    },
+                                    {
+                                        "name": "MONGODB_PASSWORD",
+                                        "value": "${DATABASE_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "MONGODB_DATABASE",
+                                        "value": "${DATABASE_NAME}"
+                                    },
+                                    {
+                                        "name": "MONGODB_ADMIN_PASSWORD",
+                                        "value": "${DATABASE_ADMIN_PASSWORD}"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "timeoutSeconds": 3,
+                                    "initialDelaySeconds": 3,
+                                    "httpGet": {
+                                        "path": "/pagecount",
+                                        "port": 8080
+                                    }
+                                },
+                                "livenessProbe": {
+                                    "timeoutSeconds": 3,
+                                    "initialDelaySeconds": 30,
+                                    "httpGet": {
+                                        "path": "/pagecount",
+                                        "port": 8080
+                                    }
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "memory": "${MEMORY_LIMIT}"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${DATABASE_SERVICE_NAME}",
+                "annotations": {
+                    "description": "Exposes the database server"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "mongodb",
+                        "port": 27017,
+                        "targetPort": 27017
+                    }
+                ],
+                "selector": {
+                    "name": "${DATABASE_SERVICE_NAME}"
+                }
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${DATABASE_SERVICE_NAME}",
+                "annotations": {
+                    "description": "Defines how to deploy the database"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "triggers": [
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": false,
+                            "containerNames": [
+                                "mongodb"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "namespace": "openshift",
+                                "name": "mongodb:2.6"
+                            }
+                        }
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "name": "${DATABASE_SERVICE_NAME}"
+                },
+                "template": {
+                    "metadata": {
+                        "name": "${DATABASE_SERVICE_NAME}",
+                        "labels": {
+                            "name": "${DATABASE_SERVICE_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "mongodb",
+                                "image": "mongodb",
+                                "ports": [
+                                    {
+                                        "containerPort": 27017
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "MONGODB_USER",
+                                        "value": "${DATABASE_USER}"
+                                    },
+                                    {
+                                        "name": "MONGODB_PASSWORD",
+                                        "value": "${DATABASE_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "MONGODB_DATABASE",
+                                        "value": "${DATABASE_NAME}"
+                                    },
+                                    {
+                                        "name": "MONGODB_ADMIN_PASSWORD",
+                                        "value": "${DATABASE_ADMIN_PASSWORD}"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "timeoutSeconds": 1,
+                                    "initialDelaySeconds": 3,
+                                    "exec": {
+                                        "command": [
+                                            "/bin/sh",
+                                            "-i",
+                                            "-c",
+                                            "mongostat --host 127.0.0.1 -u admin -p ${DATABASE_ADMIN_PASSWORD} -n 1 --noheaders"
+                                        ]
+                                    }
+                                },
+                                "livenessProbe": {
+                                    "timeoutSeconds": 1,
+                                    "initialDelaySeconds": 30,
+                                    "tcpSocket": {
+                                        "port": 27017
+                                    }
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "memory": "${MEMORY_MONGODB_LIMIT}"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "parameters": [
+        {
+            "name": "MEMORY_LIMIT",
+            "displayName": "Memory Limit",
+            "description": "Maximum amount of memory the Node.js container can use.",
+            "value": "512Mi"
+        },
+        {
+            "name": "MEMORY_MONGODB_LIMIT",
+            "displayName": "Memory Limit (MongoDB)",
+            "description": "Maximum amount of memory the MongoDB container can use.",
+            "value": "512Mi"
+        },
+        {
+            "name": "SOURCE_REPOSITORY_URL",
+            "displayName": "Git Repository URL",
+            "description": "The URL of the repository with your application source code.",
+            "value": "https://github.com/luigidemasi/adminMongo.git"
+        },
+        {
+            "name": "DATABASE_SERVICE_NAME",
+            "displayName": "Database Service Name",
+            "value": "mongodb"
+        },
+        {
+            "name": "DATABASE_USER",
+            "displayName": "MongoDB Username",
+            "description": "Username for MongoDB user that will be used for accessing the database.",
+            "generate": "expression",
+            "from": "user[A-Z0-9]{3}",
+            "value": "mongo"
+
+        },
+        {
+            "name": "DATABASE_PASSWORD",
+            "displayName": "MongoDB Password",
+            "description": "Password for the MongoDB user.",
+            "generate": "expression",
+            "from": "[a-zA-Z0-9]{16}",
+            "value": "mongo"
+        },
+        {
+            "name": "DATABASE_NAME",
+            "displayName": "Database Name",
+            "value": "sampledb"
+        },
+        {
+            "name": "DATABASE_ADMIN_PASSWORD",
+            "displayName": "Database Administrator Password",
+            "description": "Password for the database admin user.",
+            "generate": "expression",
+            "from": "[a-zA-Z0-9]{16}",
+            "value": "admin"
+
+        }
+    ],
+    "labels": {
+        "template": "adminMongo"
+    }
+}
