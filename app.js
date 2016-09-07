@@ -29,7 +29,7 @@ var app = express();
 
 // setup the translation
 var i18n = new (require('i18n-2'))({
-    locales: ['en', 'de', 'es', 'ru'],
+    locales: ['en', 'de', 'es', 'ru', 'it'],
     directory: path.join(dir_base, 'locales/')
 });
 
@@ -152,7 +152,9 @@ if (connection_string == null && process.env.DATABASE_SERVICE_NAME) {
 console.log('Connection String='+JSON.stringify(configConnection));
 
 
-if(!fs.existsSync(config_connections)) fs.writeFileSync(config_connections, JSON.stringify(configConnection));
+//if(!fs.existsSync(config_connections)) {
+fs.writeFileSync(config_connections, JSON.stringify(configConnection));
+//}
 
 // if config files exist but are blank we write blank files for nconf
 if(fs.existsSync(config_app, 'utf8')){
