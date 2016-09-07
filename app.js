@@ -141,11 +141,15 @@ if (connection_string == null && process.env.DATABASE_SERVICE_NAME) {
     // Provide UI label that excludes user id and pw
     mongoURLLabel += mongoHost + ':' + mongoPort + '/' + mongoDatabase;
     connection_string += mongoHost + ':' +  mongoPort + '/' + mongoDatabase;
+    configConnection.connections['mongodb'] = {
+            connection_options: {},
+            connection_string: 'mongodb://'+mongoUser+':'+mongoPassword+'@'+mongoHost+':'+mongoPort+'/'+mongoDatabase
+        };
 
   }
 }
 
-
+console.log("Connection String='"+);
 
 
 if(!fs.existsSync(config_connections)) fs.writeFileSync(config_connections, JSON.stringify(configConnection));

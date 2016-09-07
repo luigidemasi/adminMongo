@@ -2,10 +2,10 @@
     "kind": "Template",
     "apiVersion": "v1",
     "metadata": {
-        "name": "adminMongo",
+        "name": "admin-mongo",
         "namespace": "openshift",
         "annotations": {
-            "description": "adminMongo Node.js application with a MongoDB database",
+            "description": "admin-mongo Node.js application with a MongoDB database",
             "iconClass": "icon-nodejs",
             "tags": "admin-mongo,nodejs,mongodb"
         }
@@ -15,7 +15,7 @@
             "kind": "Service",
             "apiVersion": "v1",
             "metadata": {
-                "name": "adminMongo",
+                "name": "admin-mongo",
                 "annotations": {
                     "description": "Exposes and load balances the application pods"
                 }
@@ -29,7 +29,7 @@
                     }
                 ],
                 "selector": {
-                    "name": "adminMongo"
+                    "name": "admin-mongo"
                 }
             }
         },
@@ -37,12 +37,12 @@
             "kind": "Route",
             "apiVersion": "v1",
             "metadata": {
-                "name": "adminMongo"
+                "name": "admin-mongo"
             },
             "spec": {
                 "to": {
                     "kind": "Service",
-                    "name": "adminMongo"
+                    "name": "admin-mongo"
                 }
             }
         },
@@ -50,7 +50,7 @@
             "kind": "ImageStream",
             "apiVersion": "v1",
             "metadata": {
-                "name": "adminMongo",
+                "name": "admin-mongo",
                 "annotations": {
                     "description": "Keeps track of changes in the application image"
                 }
@@ -60,7 +60,7 @@
             "kind": "BuildConfig",
             "apiVersion": "v1",
             "metadata": {
-                "name": "adminMongo",
+                "name": "admin-mongo",
                 "annotations": {
                     "description": "Defines how to build the application"
                 }
@@ -86,16 +86,36 @@
                 "output": {
                     "to": {
                         "kind": "ImageStreamTag",
-                        "name": "adminMongo:latest"
+                        "name": "admin-mongo:latest"
                     }
-                }
+                },
+                "triggers": [
+                    {
+                        "type": "ImageChange"
+                    },
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "GitHub",
+                        "github": {
+                            "secret": "${GITHUB_WEBHOOK_SECRET}"
+                        }
+                    },
+                    {
+                        "type": "Generic",
+                        "generic": {
+                            "secret": "${GENERIC_WEBHOOK_SECRET}"
+                        }
+                    }
+                ]
             }
         },
         {
             "kind": "DeploymentConfig",
             "apiVersion": "v1",
             "metadata": {
-                "name": "adminMongo",
+                "name": "admin-mongo",
                 "annotations": {
                     "description": "Defines how to deploy the application server"
                 }
@@ -110,11 +130,11 @@
                         "imageChangeParams": {
                             "automatic": true,
                             "containerNames": [
-                                "adminMongo"
+                                "admin-mongo"
                             ],
                             "from": {
                                 "kind": "ImageStreamTag",
-                                "name": "adminMongo:latest"
+                                "name": "admin-mongo:latest"
                             }
                         }
                     },
@@ -124,20 +144,20 @@
                 ],
                 "replicas": 1,
                 "selector": {
-                    "name": "adminMongo"
+                    "name": "admin-mongo"
                 },
                 "template": {
                     "metadata": {
-                        "name": "adminMongo",
+                        "name": "admin-mongo",
                         "labels": {
-                            "name": "adminMongo"
+                            "name": "admin-mongo"
                         }
                     },
                     "spec": {
                         "containers": [
                             {
-                                "name": "adminMongo",
-                                "image": "adminMongo",
+                                "name": "admin-mongo",
+                                "image": "admin-mongo",
                                 "ports": [
                                     {
                                         "containerPort": 8080
@@ -169,7 +189,7 @@
                                     "timeoutSeconds": 3,
                                     "initialDelaySeconds": 3,
                                     "httpGet": {
-                                        "path": "/pagecount",
+                                        "path": "/",
                                         "port": 8080
                                     }
                                 },
@@ -177,7 +197,7 @@
                                     "timeoutSeconds": 3,
                                     "initialDelaySeconds": 30,
                                     "httpGet": {
-                                        "path": "/pagecount",
+                                        "path": "/",
                                         "port": 8080
                                     }
                                 },
@@ -333,7 +353,36 @@
             "name": "SOURCE_REPOSITORY_URL",
             "displayName": "Git Repository URL",
             "description": "The URL of the repository with your application source code.",
-            "value": "https://github.com/luigidemasi/adminMongo.git"
+          "value": "https://github.com/luigidemasi/adminMongo.git"
+        },
+        {
+            "name": "SOURCE_REPOSITORY_REF",
+            "displayName": "Git Reference",
+            "description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+        },
+        {
+            "name": "CONTEXT_DIR",
+            "displayName": "Context Directory",
+            "description": "Set this to the relative path to your project if it is not in the root of your repository."
+        },
+        {
+            "name": "APPLICATION_DOMAIN",
+            "displayName": "Application Hostname",
+            "description": "The exposed hostname that will route to the Node.js service, if left blank a value will be defaulted."
+        },
+        {
+            "name": "GITHUB_WEBHOOK_SECRET",
+            "displayName": "GitHub Webhook Secret",
+            "description": "A secret string used to configure the GitHub webhook.",
+            "generate": "expression",
+            "from": "[a-zA-Z0-9]{40}"
+        },
+        {
+            "name": "GENERIC_WEBHOOK_SECRET",
+            "displayName": "Generic Webhook Secret",
+            "description": "A secret string used to configure the Generic webhook.",
+            "generate": "expression",
+            "from": "[a-zA-Z0-9]{40}"
         },
         {
             "name": "DATABASE_SERVICE_NAME",
@@ -360,7 +409,7 @@
         {
             "name": "DATABASE_NAME",
             "displayName": "Database Name",
-            "value": "sampledb"
+            "value": "aracne"
         },
         {
             "name": "DATABASE_ADMIN_PASSWORD",
@@ -373,6 +422,6 @@
         }
     ],
     "labels": {
-        "template": "adminMongo"
+        "template": "admin-mongo"
     }
 }
