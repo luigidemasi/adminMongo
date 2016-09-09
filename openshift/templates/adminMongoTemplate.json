@@ -60,7 +60,7 @@
         "to": {
           "kind": "Service",
           "name": "admin-mongo"
-        }
+        },
         "port": {
           "targetPort": "8080"
         }
